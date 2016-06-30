@@ -1,0 +1,5 @@
+*.sql
+*.pyc
+*.log
+*.csv
+libs/.app.cfg
