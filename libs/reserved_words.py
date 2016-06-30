@@ -28,7 +28,7 @@ ETL_RUN = 5
 
 # POSIBLE COMMANDS
 TEST_ZIP = 0
-COMMANDS = ['TEST_ZIP', ]
+COMMANDS = ['TEST_ZIP_FULL', 'TEST_ZIP_EXT', 'DANCE_A_CUMBIA']
 
 INIT_MGS = '\n'\
            '###############################################\n'\

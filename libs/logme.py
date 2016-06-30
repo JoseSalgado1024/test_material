@@ -55,9 +55,9 @@ class Log(object):
             if os_type != 'windows':
                 setattr(Log, '_STR_SCREEN', {
                     INFO: '{date}:\033[92m[INFO]\033[0m {msg}\n',
-                    WARNING: '{date}:\033[93m [WARNING]\033[0m {msg}\n',
-                    ERROR: '{date}:\033[91m [ERROR]\033[0m {msg}\n',
-                    FATAL_ERROR: '{date}:\033[91m [FATAL ERROR]\033[0m {msg}\n'
+                    WARNING: '{date}:\033[93m[WARNING]\033[0m {msg}\n',
+                    ERROR: '{date}:\033[91m[ERROR]\033[0m {msg}\n',
+                    FATAL_ERROR: '{date}:\033[91m[FATAL ERROR]\033[0m {msg}\n'
                 })
             else:
                 setattr(Log, '_STR_SCREEN', {

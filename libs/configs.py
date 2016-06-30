@@ -69,22 +69,32 @@ print 'Chequeando \"mail\"...'
 if None not in [RES_MAIL]:
     USE_OTHER_MAIL = {'enable': True,
                       'new_mail': RES_MAIL}
-print 'Chequeando \"comando activo\"...'
+print '[Done]'
+print 'Chequeando \"comando\"...'
 if None in [COMMAND]:
     COMMAND = COMMANDS[TEST_ZIP]
 else:
     if COMMAND not in COMMANDS:
+        print '[Fail]'
         exit(1)
-print 'chaqueando \"config.file\"...'
+print '[Done]'
+print 'Chequeando \"config.file\"...'
 if None in [CONFIG_FILE]:
     CONFIG_FILE = '.app.cfg'
 log_level = FULL_LOG
-print 'chaqueando \"logs\"...'
+print '[Done]'
+print 'Chequeando \"logs\"...'
 if not USE_LOGS:
     log_level = ONLY_ERRRORS
-
-
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), CONFIG_FILE)
+print '[Done]'
+print 'Chequeando \"id comercio\"...'
+try:
+    test_comercio_id = int(COMERCIO_ID)
+    print '[Done]'
+except Exception:
+    print '[Fail] comercio_id incorrecto!'
+    exit(1)
 
 my_conf = None
 logs = None
@@ -135,7 +145,8 @@ class MyConf(object):
         try:
             sections = self._Config.sections()
             for section in sections:
-                self.logs.add('loading conf for {sec}'.format(sec=section),
+                self.logs.add('loading conf for ####| {sec} |####'.format(
+                    sec=section),
                               INFO)
                 options = self._Config.options(section)
                 if len(options) == 0 or type(options) is None:
@@ -153,7 +164,7 @@ class MyConf(object):
 
 try:
     logs = Log(log_level=log_level)
-    logs.add('App iniciada...')
+    logs.add('LOGS iniciados')
 except Exception as e:
     print 'Fallo el inicio de logs...'
     exit(1)
