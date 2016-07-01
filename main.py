@@ -55,10 +55,10 @@ class SepaSB(object):
 
     def create_db_conn(self):
         try:
-            self.db_conn = psycopg2.connect(database=my_conf.db_name,
-                                            user=my_conf.db_user,
-                                            password=my_conf.db_pass,
-                                            host=my_conf.db_host)
+            self.db_conn = psycopg2.connect(database=self.db_name,
+                                            user=self.db_user,
+                                            password=self.db_pass,
+                                            host=self.db_host)
             self.db_is_connected = True
             return self.db_is_connected
         except Exception:
@@ -88,15 +88,32 @@ class TestZip(object):
         self.db_instance = db_instance
         self.conf = conf
 
-    def _prepare_test(self, db_instance=None):
+    def _exists_user(self, db_instance=None):
         db = self.db_instance if None in [db_instance] else db_instance
-        print db.run_query(self.conf.exists_user.format(cid=self.com_id))
-        exit(1)
-        if mail['enable']:
-            try:
-                db.run_query(self.conf.set_response_mail)
-            except Exception:
-                return False
+        c = db.run_query(
+            self.conf.exists_user.format(cid=self.com_id))[1]
+        return str(c[0]) == '(1L,)'
+
+    def _change_mail(self, mail):
+        logs.add(
+            'Cambiando e-mail de respuesta por: {mail}'.format(
+                mail=mail['new_mail']))
+        try:
+            q = my_conf.set_response_mail.format(new_mail=mail['new_mail'],
+                                                 cid=self.com_id)
+            db.run_query(q)
+            logs.add('Hecho!')
+            return True
+        except Exception, e:
+            logs.add(
+                'Fallo la actualizacion del e-mail'.format(m=mail), ERROR)
+            return False
+
+    def _prepare_test(self, db_instance=None):
+        if not self._exists_user():
+            return False
+        if self.mail['enable'] and not self._change_mail(self.mail):
+            return False
 
     def run_test(self):
         self._prepare_test()
