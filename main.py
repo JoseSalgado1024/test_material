@@ -30,6 +30,14 @@ SEPA_DATABASE=test_sepa_etl_dev
 SEPA_PORT=5432
 SEPA_USER=gobiernoabierto
 SEPA_PASS=Encrypted 2be98afc86aa7958ba918ac79db80bbd5
+
+psycopg2.connect(database='sepa_db',
+user='gobiernoabierto',
+password='gobabierto',
+host='localhost')
+ UPDATE comercio SET comercio_activo = FALSE where comercio_id != 1; UPDATE comercio SET comercio_activo = TRUE where comercio_id = 1;
+
+
 """
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
@@ -73,7 +81,10 @@ class SepaSB(object):
         q = self.db_conn.cursor()
         q.execute(query)
         response = []
-        res = q.fetchall()
+        try:
+            res = q.fetchall()
+        except Exception:
+            return False
         column_names = [row[0] for row in q.description]
         response.append(column_names)
         for row in res:
@@ -91,7 +102,9 @@ class TestZip(object):
     def _exists_user(self, db_instance=None):
         db = self.db_instance if None in [db_instance] else db_instance
         c = db.run_query(
-            self.conf.exists_user.format(cid=self.com_id))[1]
+            self.conf.exists_user.format(cid=self.com_id))
+        if not c:
+            return False
         return str(c[0]) == '(1L,)'
 
     def _change_mail(self, mail):
@@ -101,7 +114,8 @@ class TestZip(object):
         try:
             q = my_conf.set_response_mail.format(new_mail=mail['new_mail'],
                                                  cid=self.com_id)
-            db.run_query(q)
+            if not db.run_query(q):
+                return False
             logs.add('Hecho!')
             return True
         except Exception, e:
@@ -114,20 +128,36 @@ class TestZip(object):
             return False
         if self.mail['enable'] and not self._change_mail(self.mail):
             return False
+        return True
+
+    def _set_active_user(self, db_instance=None):
+        db = self.db_instance if None in [db_instance] else db_instance
+        c = db.run_query(self.conf.set_active_user.format(cid=self.com_id))
+        if not c:
+            return False
+        return str(c[0]) == '(1L,)'
 
     def run_test(self):
-        self._prepare_test()
+        if self._prepare_test():
+            if self._set_active_user():
+                return True
+            else:
+                raise Exception
+        else:
+            raise Exception
 
 
 def main():
     if COMMAND in COMMANDS:
         if COMMAND == COMMANDS[TEST_ZIP]:
+            logs.add('Corriendo test. \"test.zip\"')
             try:
-                logs.add('Corriendo test. \"test.zip\"')
+                logs.add('Inicializando DB..')
                 db_instance = SepaSB(db_user=my_conf.db_user,
                                      db_pass=my_conf.db_pass,
                                      db_host=my_conf.db_host,
                                      db_name=my_conf.db_name)
+                logs.add('Lanzando Test..')
                 test = TestZip(COMERCIO_ID,
                                USE_OTHER_MAIL,
                                db_instance,
