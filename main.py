@@ -27,18 +27,6 @@ from libs.configs import *
 from subprocess import Popen, PIPE
 import re
 """
-SEPA_HOST=test-sepa-api-dev.c2setm4u4yff.us-east-1.rds.amazonaws.com
-SEPA_DATABASE=test_sepa_etl_dev
-SEPA_PORT=5432
-SEPA_USER=gobiernoabierto
-SEPA_PASS=Encrypted 2be98afc86aa7958ba918ac79db80bbd5
-
-psycopg2.connect(database='sepa_db',
-user='gobiernoabierto',
-password='gobabierto',
-host='localhost')
- UPDATE comercio SET comercio_activo = FALSE where comercio_id != 1; UPDATE comercio SET comercio_activo = TRUE where comercio_id = 1;
-
 
 """
 psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
@@ -156,13 +144,7 @@ class TestZip(object):
         command = self.conf.run_etl.format(etl_run=1)
         logs.add('Lanzando preciosETL, comando: \"{cmd}\"'.format(cmd=command))
         try:
-            p = Popen(command.split(' '),
-                      stdin=PIPE,
-                      stdout=PIPE,
-                      stderr=PIPE)
-            output, err = p.communicate(
-                b"input data that is passed to subprocess' stdin")
-            rc = p.returncode
+            p = call([command], shell=True)
             p.wait()
         except Exception, e:
             print e
