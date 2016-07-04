@@ -2,6 +2,7 @@
 # encoding: utf-8
 """
 
+
         .-.
        /_ _\
        |o^o|
@@ -152,10 +153,7 @@ class TestZip(object):
         return True
 
     def _run_etl(self):
-        command = self.conf.run_etl.format(
-            db_pass=self.conf.db_pass,
-            etl_run=1,
-            pro_path=self.conf.etl_path)
+        command = self.conf.run_etl.format(etl_run=1)
         logs.add('Lanzando preciosETL, comando: \"{cmd}\"'.format(cmd=command))
         try:
             p = Popen(command.split(' '),
