@@ -165,7 +165,9 @@ class TestZip(object):
             output, err = p.communicate(
                 b"input data that is passed to subprocess' stdin")
             rc = p.returncode
-        except Exception:
+            p.wait()
+        except Exception, e:
+            print e
             return False
         return True
 
