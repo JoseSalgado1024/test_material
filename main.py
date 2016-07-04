@@ -24,7 +24,7 @@ import psycopg2
 from libs import configs
 from os.path import *
 from libs.configs import *
-from subprocess import Popen, PIPE
+from subprocess import call
 import re
 """
 
