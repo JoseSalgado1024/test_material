@@ -23,6 +23,7 @@ import psycopg2
 from libs import configs
 from os.path import *
 from libs.configs import *
+from subprocess import Popen, PIPE
 import re
 """
 SEPA_HOST=test-sepa-api-dev.c2setm4u4yff.us-east-1.rds.amazonaws.com
@@ -72,7 +73,7 @@ class SepaSB(object):
         except Exception:
             return False
 
-    def run_query(self, query):
+    def run_query(self, query, del_up=False):
         if not self.db_is_connected:
             logs.add('DB, no conectada, conectando...')
             logs.add(
@@ -81,10 +82,17 @@ class SepaSB(object):
         q = self.db_conn.cursor()
         q.execute(query)
         response = []
-        try:
-            res = q.fetchall()
-        except Exception:
-            return False
+        if del_up:
+            if 'DELETE' in q.statusmessage or 'UPDATE' in q.statusmessage:
+                return True
+            else:
+                return False
+
+        else:
+            try:
+                res = q.fetchall()
+            except Exception:
+                return False
         column_names = [row[0] for row in q.description]
         response.append(column_names)
         for row in res:
@@ -101,11 +109,12 @@ class TestZip(object):
 
     def _exists_user(self, db_instance=None):
         db = self.db_instance if None in [db_instance] else db_instance
-        c = db.run_query(
-            self.conf.exists_user.format(cid=self.com_id))
+        q = self.conf.exists_user.format(cid=self.com_id)
+        c = db.run_query(q)
         if not c:
+            logs.add('Fallo query \"{q}\"'.format(q=q), ERROR)
             return False
-        return str(c[0]) == '(1L,)'
+        return c[1][0] == 1
 
     def _change_mail(self, mail):
         logs.add(
@@ -114,7 +123,7 @@ class TestZip(object):
         try:
             q = my_conf.set_response_mail.format(new_mail=mail['new_mail'],
                                                  cid=self.com_id)
-            if not db.run_query(q):
+            if not db.run_query(q, del_up=True):
                 return False
             logs.add('Hecho!')
             return True
@@ -125,6 +134,8 @@ class TestZip(object):
 
     def _prepare_test(self, db_instance=None):
         if not self._exists_user():
+            logs.add('No existe el usuario con id=\"{cid}\"'.format(
+                cid=self.com_id), FATAL_ERROR)
             return False
         if self.mail['enable'] and not self._change_mail(self.mail):
             return False
@@ -132,16 +143,46 @@ class TestZip(object):
 
     def _set_active_user(self, db_instance=None):
         db = self.db_instance if None in [db_instance] else db_instance
-        c = db.run_query(self.conf.set_active_user.format(cid=self.com_id))
-        if not c:
+        d = db.run_query(self.conf.set_active_user.format(cid=self.com_id),
+                         del_up=True)
+        a = db.run_query(self.conf.set_inactive_user.format(cid=self.com_id),
+                         del_up=True)
+        if False in [d, a]:
             return False
-        return str(c[0]) == '(1L,)'
+        return True
+
+    def _run_etl(self):
+        command = self.conf.run_etl.format(
+            db_pass=self.conf.db_pass,
+            etl_run=1,
+            pro_path=self.conf.etl_path)
+        logs.add('Lanzando preciosETL, comando: \"{cmd}\"'.format(cmd=command))
+        try:
+            p = Popen(command.split(' '),
+                      stdin=PIPE,
+                      stdout=PIPE,
+                      stderr=PIPE)
+            output, err = p.communicate(
+                b"input data that is passed to subprocess' stdin")
+            rc = p.returncode
+        except Exception:
+            return False
+        return True
 
     def run_test(self):
         if self._prepare_test():
+            logs.add('Test Inicializado correctamente')
             if self._set_active_user():
-                return True
+                logs.add('Comercio \"{cid}\" activado correctamente'.format(
+                    cid=self.com_id))
+                if self._run_etl():
+                    return True
+                else:
+                    logs.add('Fallo lanzamiento de preciosETL', FATAL_ERROR)
+                    raise Exception
             else:
+                logs.add('Fallo la activacion del Comercio \"{cid}\"'.format(
+                    cid=self.com_id), FATAL_ERROR)
                 raise Exception
         else:
             raise Exception
