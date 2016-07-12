@@ -90,6 +90,12 @@ class SepaSB(object):
         return response
 
 
+def run_my_etl(command):
+    os.environ['PGPASSWORD'] = my_conf.db_pass
+    os.environ['PGUSER'] = my_conf.db_user
+    p = call(command.split(), shell=True)
+
+
 class TestZip(object):
     def __init__(self, com_id, mail, db_instance, conf):
         self.com_id = com_id
@@ -145,9 +151,7 @@ class TestZip(object):
         command = self.conf.run_etl.format(etl_run=1)
         logs.add('Lanzando preciosETL, comando: \"{cmd}\"'.format(cmd=command))
         try:
-            os.environ['PGPASSWORD'] = self.conf.db_pass
-            os.environ['PGUSER'] = self.conf.db_user
-            p = call(command.split(), shell=True)
+            run_my_etl(cmd)
         except Exception, e:
             print e
             return False
