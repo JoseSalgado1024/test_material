@@ -147,7 +147,7 @@ class TestZip(object):
         try:
             os.environ['PGPASSWORD'] = self.conf.db_pass
             os.environ['PGUSER'] = self.conf.db_user
-            p = call([command], shell=True)
+            p = call(command.split(), shell=True)
         except Exception, e:
             print e
             return False
