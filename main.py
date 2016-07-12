@@ -185,14 +185,18 @@ def main():
                                USE_OTHER_MAIL,
                                db_instance,
                                my_conf)
-                test.run_test()
-                logs.add('Test finalizado correctamente!')
+                if test.run_test():
+                    logs.add('Test finalizado correctamente!')
+                else:
+                    logs.add('Fallo Test', ERROR)
+                    exit(1)
             except Exception, e:
                 logs.add('Fallo Test. Error:{e}'.format(e=e), ERROR)
                 exit(1)
         else:
             logs.add('Funcion \"{f}\" no implementada aun.'.format(f=COMMAND),
                      FATAL_ERROR)
+            exit(1)
     else:
         log.add('Comando no válido!', ERROR)
 
