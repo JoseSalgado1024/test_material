@@ -151,7 +151,7 @@ class TestZip(object):
         command = self.conf.run_etl.format(etl_run=1)
         logs.add('Lanzando preciosETL, comando: \"{cmd}\"'.format(cmd=command))
         try:
-            run_my_etl(cmd)
+            run_my_etl(command)
         except Exception, e:
             print e
             return False
