@@ -24,7 +24,7 @@ import psycopg2
 from libs import configs
 from os.path import *
 from libs.configs import *
-from subprocess import call, Popen
+from subprocess import call
 import re
 """
 
@@ -144,8 +144,7 @@ class TestZip(object):
         command = self.conf.run_etl.format(etl_run=1)
         logs.add('Lanzando preciosETL, comando: \"{cmd}\"'.format(cmd=command))
         try:
-            # p = call([command], shell=True)
-            p = Popen([command])
+            p = call([command], shell=True)
         except Exception, e:
             print e
             return False
