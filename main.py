@@ -25,7 +25,7 @@ from libs import configs
 import os
 from os.path import *
 from libs.configs import *
-from subprocess import call
+from subprocess import call, Popen
 import re
 """
 
@@ -93,7 +93,7 @@ class SepaSB(object):
 def run_my_etl(command):
     os.environ['PGPASSWORD'] = my_conf.db_pass
     os.environ['PGUSER'] = my_conf.db_user
-    p = call(command.split(), shell=True)
+    p = Popen(command.split())
 
 
 class TestZip(object):
