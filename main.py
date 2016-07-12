@@ -22,6 +22,7 @@
 """
 import psycopg2
 from libs import configs
+import os
 from os.path import *
 from libs.configs import *
 from subprocess import call
@@ -144,6 +145,8 @@ class TestZip(object):
         command = self.conf.run_etl.format(etl_run=1)
         logs.add('Lanzando preciosETL, comando: \"{cmd}\"'.format(cmd=command))
         try:
+            os.environ['PGPASSWORD'] = self.conf.db_pass
+            os.environ['PGUSER'] = self.conf.db_user
             p = call([command], shell=True)
         except Exception, e:
             print e
