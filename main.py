@@ -145,7 +145,6 @@ class TestZip(object):
         logs.add('Lanzando preciosETL, comando: \"{cmd}\"'.format(cmd=command))
         try:
             p = call([command], shell=True)
-            p.wait()
         except Exception, e:
             print e
             return False
